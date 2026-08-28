@@ -26,10 +26,11 @@ echolog/
 └── src/
     └── echolog/
         ├── main.py              # Entry point & global exception handlers
-        ├── database.py          # SQLite/PostgreSQL engine and session yielding
         ├── core/
         │   ├── config.py        # Application configuration
+        │   ├── exceptions.py    # Base exception classes
         │   └── database.py      # Database session management
+        │
         ├── users/               # User lifecycle & authentication
         ├── entries/             # Journal CRUD, manual transaction state
         │   ├── router.py        # Thin HTTP traffic controllers
@@ -37,5 +38,5 @@ echolog/
         │   ├── models.py        # SQLModel entities (table=True)
         │   └── schemas.py       # Pydantic DTOs for request validation
         ├── analysis/            # Google GenAI prompt orchestration
-        └── billing/             # Checkout sessions and webhook validation
+        └── payments/            # Checkout sessions and webhook validation
 ```
