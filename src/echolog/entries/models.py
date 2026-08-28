@@ -23,12 +23,12 @@ class Entries(SQLModel, table=True):
         ..., description="Exact date and time the position was opened"
     )
 
-    exit_time: datetime = Field(
-        ..., description="Exact date and time the position was closed"
+    exit_time: datetime | None = Field(
+        default=None, description="Exact date and time the position was closed"
     )
 
-    pnl: float = Field(
-        ..., description="Profit or loss for tracking evaluation metrics"
+    pnl: float | None = Field(
+        default=None, description="Profit or loss for tracking evaluation metrics"
     )
 
     notes: str = Field(
@@ -48,5 +48,7 @@ class Entries(SQLModel, table=True):
             "onupdate": func.now(),
         },
     )
+
+    analyses: list["TradeAnalysis"] = Relationship(back_populates="entry")
 
     user: "Users" = Relationship(back_populates="entries")

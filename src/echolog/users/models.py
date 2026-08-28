@@ -1,5 +1,6 @@
-from sqlmodel import SQLModel, Field, func
+from sqlmodel import SQLModel, Field, func, Relationship
 from datetime import datetime
+from typing import Optional
 
 
 class Users(SQLModel, table=True):
@@ -43,3 +44,7 @@ class Users(SQLModel, table=True):
             "onupdate": func.now(),
         },
     )
+
+    history_analyses: list["HistoryAnalysis"] = Relationship(back_populates="user")
+
+    subscription: Optional["Subscription"] = Relationship(back_populates="user")

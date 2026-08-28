@@ -2,8 +2,10 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from .core.database import create_table
 from .users.routes import user_router
-from .users.models import Users
 from .entries.models import Entries
+from .analysis.models import TradeAnalysis, HistoryAnalysis
+from .payments.models import Subscription
+from .users.models import Users
 
 
 @asynccontextmanager
