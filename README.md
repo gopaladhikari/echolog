@@ -28,15 +28,14 @@ echolog/
         ├── main.py              # Entry point & global exception handlers
         ├── database.py          # SQLite/PostgreSQL engine and session yielding
         ├── core/
-        │   ├── security.py      # JWT encoding/decoding and Bcrypt hashing
-        │   └── exceptions.py    # Base DomainException definitions
-        └── modules/
-            ├── users/           # User lifecycle & authentication
-            ├── entries/         # Journal CRUD, manual transaction state
-            │   ├── router.py    # Thin HTTP traffic controllers
-            │   ├── service.py   # Explicit database & AI orchestration
-            │   ├── models.py    # SQLModel entities (table=True)
-            │   └── schemas.py   # Pydantic DTOs for request validation
-            ├── analysis/        # Google GenAI prompt orchestration
-            └── billing/         # Checkout sessions and webhook validation
+        │   ├── config.py        # Application configuration
+        │   └── database.py      # Database session management
+        ├── users/               # User lifecycle & authentication
+        ├── entries/             # Journal CRUD, manual transaction state
+        │   ├── router.py        # Thin HTTP traffic controllers
+        │   ├── service.py       # Explicit database & AI orchestration
+        │   ├── models.py        # SQLModel entities (table=True)
+        │   └── schemas.py       # Pydantic DTOs for request validation
+        ├── analysis/            # Google GenAI prompt orchestration
+        └── billing/             # Checkout sessions and webhook validation
 ```
