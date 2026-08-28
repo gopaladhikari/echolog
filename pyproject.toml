@@ -7,7 +7,7 @@ authors = [{ name = "gopaladhikari", email = "hello@gopuadks.dev" }]
 requires-python = ">=3.14"
 dependencies = [
     "fastapi[standard]>=0.141.1",
-    "passlib>=1.7.4",
+    "passlib[bcrypt]>=1.7.4",
     "sqlmodel>=0.0.39",
 ]
 

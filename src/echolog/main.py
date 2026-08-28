@@ -1,6 +1,24 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from .core.database import create_table
+from .users.routes import user_router
+from .users.models import Users
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_table()
+    yield
+
+
+version = "v1"
+
+app = FastAPI(
+    title="Echolog API",
+    version=version,
+    description="EchoLog is a meticulously structured REST API that transforms daily journaling into actionable insights",
+    lifespan=lifespan,
+)
 
 
 @app.get("/")
@@ -8,6 +26,4 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
+app.include_router(user_router, prefix=f"/api/{version}")
