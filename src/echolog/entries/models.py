@@ -1,5 +1,11 @@
-from sqlmodel import SQLModel, Field, func, Relationship
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlmodel import Field, Relationship, SQLModel, func
+
+if TYPE_CHECKING:
+    from echolog.analysis.models import TradeAnalysis
+    from echolog.users.models import Users
 
 
 class Entries(SQLModel, table=True):
@@ -49,6 +55,6 @@ class Entries(SQLModel, table=True):
         },
     )
 
-    analyses: list["TradeAnalysis"] = Relationship(back_populates="entry")
+    analyses: list[TradeAnalysis] = Relationship(back_populates="entry")
 
-    user: "Users" = Relationship(back_populates="entries")
+    user: Users = Relationship(back_populates="entries")

@@ -1,6 +1,12 @@
-from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import func
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import func
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from echolog.entries.models import Entries
+    from echolog.users.models import Users
 
 
 class TradeAnalysis(SQLModel, table=True):
@@ -12,7 +18,7 @@ class TradeAnalysis(SQLModel, table=True):
 
     entry_id: int = Field(foreign_key="entries.id", nullable=False)
 
-    entry: "Entries" = Relationship(back_populates="analyses")
+    entry: Entries = Relationship(back_populates="analyses")
 
     created_at: datetime = Field(
         default_factory=datetime.now,
@@ -33,4 +39,4 @@ class HistoryAnalysis(SQLModel, table=True):
 
     user_id: int = Field(foreign_key="users.id", nullable=False)
 
-    user: "Users" = Relationship(back_populates="history_analyses")
+    user: Users = Relationship(back_populates="history_analyses")

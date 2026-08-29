@@ -1,6 +1,11 @@
-from sqlmodel import SQLModel, Field, func, Relationship
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
+
+from sqlmodel import Field, Relationship, SQLModel, func
+
+if TYPE_CHECKING:
+    from echolog.analysis.models import HistoryAnalysis
+    from echolog.payments.models import Subscription
 
 
 class Users(SQLModel, table=True):
@@ -45,6 +50,6 @@ class Users(SQLModel, table=True):
         },
     )
 
-    history_analyses: list["HistoryAnalysis"] = Relationship(back_populates="user")
+    history_analyses: list[HistoryAnalysis] = Relationship(back_populates="user")
 
-    subscription: Optional["Subscription"] = Relationship(back_populates="user")
+    subscription: Subscription | None = Relationship(back_populates="user")

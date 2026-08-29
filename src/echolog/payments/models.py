@@ -1,6 +1,11 @@
-from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import func
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import func
+from sqlmodel import Field, Relationship, SQLModel
+
+if TYPE_CHECKING:
+    from echolog.users.models import Users
 
 
 class Subscription(SQLModel, table=True):
@@ -37,7 +42,7 @@ class Subscription(SQLModel, table=True):
 
     user_id: int = Field(foreign_key="users.id", nullable=False, unique=True)
 
-    user: "Users" = Relationship(back_populates="subscription")
+    user: Users = Relationship(back_populates="subscription")
 
     created_at: datetime = Field(
         default_factory=datetime.now,
