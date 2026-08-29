@@ -20,6 +20,16 @@ class InvalidCredentialsException(Exception):
         super().__init__("Invalid credentials")
 
 
+class InvalidTokenException(Exception):
+    def __init__(self) -> None:
+        super().__init__("Invalid or expired token")
+
+
+class IncorrectPasswordException(Exception):
+    def __init__(self) -> None:
+        super().__init__("Incorrect current password")
+
+
 # Exceptions Handler
 async def user_not_found_exception_handler(
     request: Request, exc: UserNotFoundException
@@ -45,4 +55,22 @@ async def invalid_credentials_exception_handler(
     return JSONResponse(
         status_code=401,
         content={"detail": "Invalid credentials"},
+    )
+
+
+async def invalid_token_exception_handler(
+    request: Request, exc: InvalidTokenException
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "Invalid or expired token"},
+    )
+
+
+async def incorrect_password_exception_handler(
+    request: Request, exc: IncorrectPasswordException
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "Incorrect current password"},
     )

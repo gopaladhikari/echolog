@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel, func
@@ -34,7 +34,7 @@ class Users(SQLModel, table=True):
     )
 
     created_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(UTC),
         nullable=False,
         sa_column_kwargs={
             "server_default": func.now(),
@@ -42,7 +42,7 @@ class Users(SQLModel, table=True):
     )
 
     updated_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(UTC),
         nullable=False,
         sa_column_kwargs={
             "server_default": func.now(),

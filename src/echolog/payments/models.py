@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import func
@@ -45,12 +45,12 @@ class Subscription(SQLModel, table=True):
     user: Users = Relationship(back_populates="subscription")
 
     created_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(UTC),
         sa_column_kwargs={"server_default": func.now()},
     )
 
     updated_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(UTC),
         sa_column_kwargs={
             "server_default": func.now(),
             "onupdate": func.now(),

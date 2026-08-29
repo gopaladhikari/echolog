@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import func
@@ -21,7 +21,7 @@ class TradeAnalysis(SQLModel, table=True):
     entry: Entries = Relationship(back_populates="analyses")
 
     created_at: datetime = Field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(UTC),
         sa_column_kwargs={"server_default": func.now()},
     )
 
