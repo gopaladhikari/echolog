@@ -8,6 +8,7 @@ from .config import config
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
+
     if expires_delta:
         expire = datetime.now(UTC) + expires_delta
     else:
@@ -15,7 +16,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
             minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES
         )
     to_encode.update({"exp": expire})
+
     encoded_jwt = jwt.encode(to_encode, config.SECRET_KEY, algorithm=config.ALGORITHM)
+
     return encoded_jwt
 
 

@@ -3,7 +3,6 @@ from datetime import timedelta
 from sqlmodel import Session, select
 
 from ..core.config import config
-from ..core.dependencies import authenticate_user
 from ..core.jwt import create_access_token, verify_token
 from ..core.security import get_password_hash, verify_password
 from .exceptions import (
@@ -29,15 +28,13 @@ class UserController:
         if existing_user:
             raise UserAlreadyExistsException(user_data.email)
 
+        new_user = Users.model_validate(user_data)
+
         # Hash password before saving
         hashed_password = get_password_hash(user_data.password)
 
         # Create new user
-        new_user = Users(
-            full_name=user_data.full_name,
-            email=user_data.email,
-            password=hashed_password,
-        )
+        new_user.password = hashed_password
 
         session.add(new_user)
         session.commit()
@@ -48,9 +45,18 @@ class UserController:
     @staticmethod
     def login_user(email: str, password: str, session: Session) -> dict:
         """Login user and return JWT token."""
-        user = authenticate_user(email, password, session)
+        statement = select(Users).where(Users.email == email)
+
+        user = session.exec(statement).first()
+
+        if not user:
+            raise UserNotFoundException(email)
+
+        if not verify_password(password, user.password):
+            raise IncorrectPasswordException()
 
         access_token_expires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
+
         access_token = create_access_token(
             data={"sub": user.email}, expires_delta=access_token_expires
         )

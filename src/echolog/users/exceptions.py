@@ -1,76 +1,41 @@
-from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi import status
+
+from echolog.core.exceptions import APIException
 
 
 # Exceptions
-class UserNotFoundException(Exception):
+class UserNotFoundException(APIException):
+    status_code = status.HTTP_404_NOT_FOUND
+
     def __init__(self, email: str) -> None:
         self.email = email
         super().__init__(f"User with email {email} not found")
 
 
-class UserAlreadyExistsException(Exception):
+class UserAlreadyExistsException(APIException):
+    status_code = status.HTTP_409_CONFLICT
+
     def __init__(self, email: str) -> None:
         self.email = email
         super().__init__(f"User with email {email} already exists")
 
 
-class InvalidCredentialsException(Exception):
+class InvalidCredentialsException(APIException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+
     def __init__(self) -> None:
         super().__init__("Invalid credentials")
 
 
-class InvalidTokenException(Exception):
+class InvalidTokenException(APIException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+
     def __init__(self) -> None:
         super().__init__("Invalid or expired token")
 
 
-class IncorrectPasswordException(Exception):
+class IncorrectPasswordException(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+
     def __init__(self) -> None:
         super().__init__("Incorrect current password")
-
-
-# Exceptions Handler
-async def user_not_found_exception_handler(
-    request: Request, exc: UserNotFoundException
-) -> JSONResponse:
-    return JSONResponse(
-        status_code=404,
-        content={"detail": f"User with email {exc.email} not found"},
-    )
-
-
-async def user_already_exists_exception_handler(
-    request: Request, exc: UserAlreadyExistsException
-) -> JSONResponse:
-    return JSONResponse(
-        status_code=409,
-        content={"detail": f"User with email {exc.email} already exists"},
-    )
-
-
-async def invalid_credentials_exception_handler(
-    request: Request, exc: InvalidCredentialsException
-) -> JSONResponse:
-    return JSONResponse(
-        status_code=401,
-        content={"detail": "Invalid credentials"},
-    )
-
-
-async def invalid_token_exception_handler(
-    request: Request, exc: InvalidTokenException
-) -> JSONResponse:
-    return JSONResponse(
-        status_code=401,
-        content={"detail": "Invalid or expired token"},
-    )
-
-
-async def incorrect_password_exception_handler(
-    request: Request, exc: IncorrectPasswordException
-) -> JSONResponse:
-    return JSONResponse(
-        status_code=400,
-        content={"detail": "Incorrect current password"},
-    )
