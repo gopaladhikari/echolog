@@ -1,9 +1,14 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel import Session, select
 
+from ..users.exceptions import (
+    InvalidCredentialsException,
+    InvalidTokenException,
+    UserNotFoundException,
+)
 from ..users.models import Users
 from .database import get_session
 from .jwt import verify_token
@@ -20,30 +25,18 @@ async def get_current_user(
     payload = verify_token(token)
 
     if payload is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise InvalidTokenException()
 
     email: str = payload.get("sub")
 
     if not email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise InvalidCredentialsException()
 
     statement = select(Users).where(Users.email == email)
 
     user = session.exec(statement).first()
 
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise UserNotFoundException(email)
 
     return user
