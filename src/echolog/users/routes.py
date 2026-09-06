@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Response
 from sqlmodel import Session
 
 from ..core.database import get_session
@@ -15,7 +15,6 @@ from .schemas import (
     Login,
     ReadUser,
     ResetPassword,
-    Token,
     UpdateUser,
 )
 
@@ -38,13 +37,16 @@ def register(
     return UserController.register_user(user_data, session)
 
 
-@auth_router.post("/login", response_model=Token)
+@auth_router.post("/login", response_model=ReadUser)
 def login(
     login_data: Login,
     session: Annotated[Session, Depends(get_session)],
+    response: Response,
 ):
     """Login user and receive JWT token."""
-    return UserController.login_user(login_data.email, login_data.password, session)
+    return UserController.login_user(
+        login_data.email, login_data.password, session, response
+    )
 
 
 @auth_router.post("/forgot-password")

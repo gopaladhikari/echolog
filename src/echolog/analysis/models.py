@@ -1,29 +1,10 @@
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from echolog.entries.models import Entries
     from echolog.users.models import Users
-
-
-class TradeAnalysis(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-
-    summary: str = Field(description="AI generated summary of the trade")
-
-    mood_tag: str = Field(description="Psychological state extracted by AI")
-
-    entry_id: int = Field(foreign_key="entries.id", nullable=False)
-
-    entry: Entries = Relationship(back_populates="analyses")
-
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC),
-        sa_column_kwargs={"server_default": func.now()},
-    )
 
 
 class HistoryAnalysis(SQLModel, table=True):
@@ -39,4 +20,4 @@ class HistoryAnalysis(SQLModel, table=True):
 
     user_id: int = Field(foreign_key="users.id", nullable=False)
 
-    user: Users = Relationship(back_populates="history_analyses")
+    user: "Users" = Relationship(back_populates="history_analyses")  # noqa

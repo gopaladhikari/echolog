@@ -7,9 +7,8 @@ from echolog.core.exceptions import APIException
 class UserNotFoundException(APIException):
     status_code = status.HTTP_404_NOT_FOUND
 
-    def __init__(self, email: str) -> None:
-        self.email = email
-        super().__init__(f"User with email {email} not found")
+    def __init__(self) -> None:
+        super().__init__("User not found")
 
 
 class UserAlreadyExistsException(APIException):

@@ -1,5 +1,5 @@
 from datetime import timedelta
-
+from fastapi import Response
 from sqlmodel import Session, select
 
 from ..core.config import config
@@ -22,7 +22,9 @@ class UserController:
     def register_user(user_data: CreateUser, session: Session) -> Users:
         """Register a new user with hashed password."""
         # Check if user already exists
+
         statement = select(Users).where(Users.email == user_data.email)
+
         existing_user = session.exec(statement).first()
 
         if existing_user:
@@ -37,20 +39,24 @@ class UserController:
         new_user.password = hashed_password
 
         session.add(new_user)
+
         session.commit()
+
         session.refresh(new_user)
 
         return new_user
 
     @staticmethod
-    def login_user(email: str, password: str, session: Session) -> dict:
+    def login_user(
+        email: str, password: str, session: Session, response: Response
+    ) -> dict:
         """Login user and return JWT token."""
         statement = select(Users).where(Users.email == email)
 
         user = session.exec(statement).first()
 
         if not user:
-            raise UserNotFoundException(email)
+            raise UserNotFoundException()
 
         if not verify_password(password, user.password):
             raise IncorrectPasswordException()
@@ -61,7 +67,16 @@ class UserController:
             data={"sub": user.email}, expires_delta=access_token_expires
         )
 
-        return {"access_token": access_token, "token_type": "bearer"}
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            max_age=3600,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+        )
+
+        return user
 
     @staticmethod
     def change_password(

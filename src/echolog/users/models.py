@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Optional
 
@@ -53,8 +51,8 @@ class Users(SQLModel, table=True):
         },
     )
 
-    history_analyses: list["HistoryAnalysis"] = Relationship(back_populates="user")
+    history_analyses: list["HistoryAnalysis"] = Relationship(back_populates="user")  # noqa
 
-    subscription: Optional["Subscription"] = Relationship(back_populates="user")
+    subscription: Optional["Subscription"] = Relationship(back_populates="user")  # noqa
 
-    entries: list["Entries"] = Relationship(back_populates="user")
+    entries: list["Entries"] = Relationship(back_populates="user")  # noqa

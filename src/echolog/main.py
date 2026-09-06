@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from .analysis.models import HistoryAnalysis, TradeAnalysis  # noqa: F401
+from .analysis.models import HistoryAnalysis  # noqa: F401
 from .core.database import create_table
 from .core.exceptions import APIException, global_api_exception_handler
 from .entries.models import Entries  # noqa: F401

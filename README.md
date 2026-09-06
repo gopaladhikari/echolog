@@ -40,3 +40,10 @@ echolog/
         ├── analysis/            # Google GenAI prompt orchestration
         └── payments/            # Checkout sessions and webhook validation
 ```
+## Test Credentials
+
+Full_name = Test User
+
+email = user@echolog.com
+
+password = Echolog123

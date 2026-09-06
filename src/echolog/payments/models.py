@@ -40,10 +40,6 @@ class Subscription(SQLModel, table=True):
         description="True if the user canceled but still has remaining time",
     )
 
-    user_id: int = Field(foreign_key="users.id", nullable=False, unique=True)
-
-    user: Users = Relationship(back_populates="subscription")
-
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC),
         sa_column_kwargs={"server_default": func.now()},
@@ -56,3 +52,7 @@ class Subscription(SQLModel, table=True):
             "onupdate": func.now(),
         },
     )
+
+    user_id: int = Field(foreign_key="users.id", nullable=False)
+
+    user: "Users" = Relationship(back_populates="subscription")  # noqa
