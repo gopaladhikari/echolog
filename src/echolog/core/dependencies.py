@@ -1,11 +1,11 @@
 from typing import Annotated
 
+import jwt
 from fastapi import Depends
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import APIKeyCookie
 from sqlmodel import Session, select
 
 from ..users.exceptions import (
-    InvalidCredentialsException,
     InvalidTokenException,
     UserNotFoundException,
 )
@@ -13,30 +13,26 @@ from ..users.models import Users
 from .database import get_session
 from .jwt import verify_token
 
-security = HTTPBearer()
+cookie_scheme = APIKeyCookie(name="access_token")
 
 
 async def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    token: Annotated[str | None, Depends(cookie_scheme)],
     session: Annotated[Session, Depends(get_session)],
 ) -> Users:
     """Dependency to get the current authenticated user from JWT token."""
-    token = credentials.credentials
-    payload = verify_token(token)
-
-    if payload is None:
+    if not token:
         raise InvalidTokenException()
+    try:
+        payload = verify_token(token)
 
-    email: str = payload.get("sub")
+        statement = select(Users).where(Users.email == payload.email)
 
-    if not email:
-        raise InvalidCredentialsException()
+        user = session.exec(statement).first()
 
-    statement = select(Users).where(Users.email == email)
+        if user is None:
+            raise UserNotFoundException(payload.email)
 
-    user = session.exec(statement).first()
-
-    if user is None:
-        raise UserNotFoundException(email)
-
-    return user
+        return user
+    except jwt.PyJWTError:
+        raise InvalidTokenException()

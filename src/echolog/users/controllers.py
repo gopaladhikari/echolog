@@ -1,13 +1,11 @@
-from datetime import timedelta
 from fastapi import Response
 from sqlmodel import Session, select
 
-from ..core.config import config
-from ..core.jwt import create_access_token, verify_token
+from ..core.jwt import JWT, create_access_token, verify_token
+from ..core.resend import send_email
 from ..core.security import get_password_hash, verify_password
 from .exceptions import (
-    IncorrectPasswordException,
-    InvalidTokenException,
+    InvalidCredentialsException,
     UserAlreadyExistsException,
     UserNotFoundException,
 )
@@ -59,13 +57,9 @@ class UserController:
             raise UserNotFoundException()
 
         if not verify_password(password, user.password):
-            raise IncorrectPasswordException()
+            raise InvalidCredentialsException()
 
-        access_token_expires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
-
-        access_token = create_access_token(
-            data={"sub": user.email}, expires_delta=access_token_expires
-        )
+        access_token = create_access_token(JWT(id=user.id, email=user.email))
 
         response.set_cookie(
             key="access_token",
@@ -85,15 +79,18 @@ class UserController:
         """Change user password."""
         # Verify current password
         if not verify_password(password_data.current_password, user.password):
-            raise IncorrectPasswordException()
+            raise InvalidCredentialsException()
 
         # Hash new password
         hashed_password = get_password_hash(password_data.new_password)
 
         # Update password
         user.password = hashed_password
+
         session.add(user)
+
         session.commit()
+
         session.refresh(user)
 
         return {"message": "Password changed successfully"}
@@ -102,26 +99,21 @@ class UserController:
     def forgot_password(email: str, session: Session) -> dict:
         """Generate password reset token."""
         statement = select(Users).where(Users.email == email)
+
         user = session.exec(statement).first()
 
         if not user:
-            # Don't reveal if user exists or not for security
             return {"message": "If user exists, password reset email sent"}
 
-        # Create reset token with short expiration
-        reset_token_expires = timedelta(
-            minutes=config.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES
-        )
-        reset_token = create_access_token(
-            data={"sub": user.email, "type": "password_reset"},
-            expires_delta=reset_token_expires,
+        reset_token = create_access_token(JWT(email=user.email, id=user.id))
+
+        send_email(
+            email,
+            "Fogot password email sent to you mail",
+            f"</h1> Reset your password here: localhost:8000/reset-password/{reset_token} </h1>",
         )
 
-        # In production, you would send this via email
-        return {
-            "message": "Password reset token generated",
-            "reset_token": reset_token,  # Remove this in production
-        }
+        return {"message": "Password reset link sent to your email"}
 
     @staticmethod
     def reset_password(reset_data: ResetPassword, session: Session) -> dict:
@@ -129,31 +121,24 @@ class UserController:
         # Verify token
         payload = verify_token(reset_data.token)
 
-        if payload is None:
-            raise InvalidTokenException()
-
-        # Check if it's a password reset token
-        if payload.get("type") != "password_reset":
-            raise InvalidTokenException()
-
-        email = payload.get("sub")
-        if email is None:
-            raise InvalidTokenException()
-
         # Find user
-        statement = select(Users).where(Users.email == email)
+        statement = select(Users).where(Users.email == payload.email)
+
         user = session.exec(statement).first()
 
         if not user:
-            raise UserNotFoundException(email)
+            raise UserNotFoundException(payload.email)
 
         # Hash new password
         hashed_password = get_password_hash(reset_data.new_password)
 
         # Update password
         user.password = hashed_password
+
         session.add(user)
+
         session.commit()
+
         session.refresh(user)
 
         return {"message": "Password reset successfully"}
