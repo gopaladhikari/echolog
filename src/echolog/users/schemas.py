@@ -1,6 +1,9 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic_core.core_schema import FieldValidationInfo
+
+from .exceptions import InvalidPasswordException
 
 
 class CreateUser(BaseModel):
@@ -18,9 +21,7 @@ class ReadUser(BaseModel):
 
 
 class UpdateUser(BaseModel):
-    full_name: str | None = Field(None, min_length=3, max_length=30)
-    email: EmailStr | None = None
-    password: str | None = Field(None, min_length=8)
+    full_name: str = Field(..., min_length=3, max_length=30)
 
 
 class Login(BaseModel):
@@ -53,5 +54,11 @@ class ForgotPassword(BaseModel):
 
 
 class ResetPassword(BaseModel):
-    token: str
     new_password: str = Field(..., min_length=8)
+    confirm_password: str = Field(..., min_length=8)
+
+    @field_validator("confirm_password")
+    def passwords_match(cls, v: str, info: FieldValidationInfo) -> str:
+        if v != info.data.get("new_password"):
+            raise InvalidPasswordException()
+        return v

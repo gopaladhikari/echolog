@@ -33,3 +33,10 @@ class InvalidTokenException(APIException):
 
     def __init__(self, message: str = "Invalid or expired token") -> None:
         super().__init__(message)
+
+
+class InvalidPasswordException(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+
+    def __init__(self, message: str = "Passwords do not match") -> None:
+        super().__init__(message)

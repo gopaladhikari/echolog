@@ -1,4 +1,5 @@
 from fastapi import Response
+from resend.exceptions import ResendError
 from sqlmodel import Session, select
 
 from ..core.jwt import JWT, create_access_token, verify_token
@@ -106,28 +107,31 @@ class UserController:
             return {"message": "If user exists, password reset email sent"}
 
         reset_token = create_access_token(JWT(email=user.email, id=user.id))
+        try:
+            send_email(
+                email,
+                "Fogot password email sent to you mail",
+                f"</h1> Reset your password here: localhost:8000/reset-password/{reset_token} </h1>",
+            )
 
-        send_email(
-            email,
-            "Fogot password email sent to you mail",
-            f"</h1> Reset your password here: localhost:8000/reset-password/{reset_token} </h1>",
-        )
+            return {"message": "Password reset link sent to your email"}
 
-        return {"message": "Password reset link sent to your email"}
+        except ResendError as e:
+            return {"message": str(e)}
 
     @staticmethod
-    def reset_password(reset_data: ResetPassword, session: Session) -> dict:
+    def reset_password(token: str, reset_data: ResetPassword, session: Session) -> dict:
         """Reset password using token."""
         # Verify token
-        payload = verify_token(reset_data.token)
+        payload = verify_token(token)
 
         # Find user
-        statement = select(Users).where(Users.email == payload.email)
+        statement = select(Users).where(Users.id == payload.id)
 
         user = session.exec(statement).first()
 
         if not user:
-            raise UserNotFoundException(payload.email)
+            raise UserNotFoundException()
 
         # Hash new password
         hashed_password = get_password_hash(reset_data.new_password)
@@ -151,15 +155,5 @@ class UserController:
 
         if not user:
             raise UserNotFoundException(email)
-
-        return user
-
-    @staticmethod
-    def get_user_by_id(user_id: int, session: Session) -> Users:
-        """Get user by ID."""
-        user = session.get(Users, user_id)
-
-        if not user:
-            raise UserNotFoundException(str(user_id))
 
         return user

@@ -5,7 +5,6 @@ from sqlmodel import Session
 
 from ..core.database import get_session
 from ..core.dependencies import get_current_user
-from ..core.security import get_password_hash
 from .controllers import UserController
 from .models import Users
 from .schemas import (
@@ -58,13 +57,14 @@ def forgot_password(
     return UserController.forgot_password(forgot_data.email, session)
 
 
-@auth_router.post("/reset-password")
+@auth_router.post("/reset-password/{token}")
 def reset_password(
+    token: str,
     reset_data: ResetPassword,
     session: Annotated[Session, Depends(get_session)],
 ):
     """Reset password using token."""
-    return UserController.reset_password(reset_data, session)
+    return UserController.reset_password(token, reset_data, session)
 
 
 # User Management Routes (Protected)
@@ -83,15 +83,13 @@ def update_current_user(
     session: Annotated[Session, Depends(get_session)],
 ):
     """Update current user information."""
-    if user_data.full_name is not None:
-        current_user.full_name = user_data.full_name
-    if user_data.email is not None:
-        current_user.email = user_data.email
-    if user_data.password is not None:
-        current_user.password = get_password_hash(user_data.password)
+
+    current_user.full_name = user_data.full_name
 
     session.add(current_user)
+
     session.commit()
+
     session.refresh(current_user)
 
     return current_user
@@ -105,26 +103,3 @@ def change_password(
 ):
     """Change current user password."""
     return UserController.change_password(current_user, password_data, session)
-
-
-@user_router.get("/{user_id}", response_model=ReadUser)
-def get_user(
-    user_id: int,
-    current_user: Annotated[Users, Depends(get_current_user)],
-    session: Annotated[Session, Depends(get_session)],
-):
-    """Get user by ID (protected route)."""
-    return UserController.get_user_by_id(user_id, session)
-
-
-@user_router.get("/", response_model=list[ReadUser])
-def get_users(
-    current_user: Annotated[Users, Depends(get_current_user)],
-    session: Annotated[Session, Depends(get_session)],
-):
-    """Get all users (protected route)."""
-    from sqlmodel import select
-
-    statement = select(Users)
-    users = session.exec(statement).all()
-    return users
