@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Optional
 from sqlmodel import Field, Relationship, SQLModel, func
 
 if TYPE_CHECKING:
-    from echolog.analysis.models import HistoryAnalysis
     from echolog.entries.models import Entries
     from echolog.payments.models import Subscription
 
@@ -50,8 +49,6 @@ class Users(SQLModel, table=True):
             "onupdate": func.now(),
         },
     )
-
-    history_analyses: list["HistoryAnalysis"] = Relationship(back_populates="user")  # noqa
 
     subscription: Optional["Subscription"] = Relationship(back_populates="user")  # noqa
 

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CreateEntry(BaseModel):
@@ -11,10 +11,14 @@ class CreateEntry(BaseModel):
     pnl: float | None = None
     notes: str = Field(..., min_length=1)
 
+    @field_validator("instrument")
+    @classmethod
+    def format_instrument(cls, v: str) -> str:
+        return v.strip().upper()
+
 
 class ReadEntry(BaseModel):
     id: int
-    user_id: int
     instrument: str
     position_size: float
     entry_time: datetime

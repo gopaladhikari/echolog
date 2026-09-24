@@ -38,7 +38,7 @@ def get_entry(
     session: Annotated[Session, Depends(get_session)],
 ):
     """Get a specific entry by ID."""
-    return EntryController.get_entry_by_id(entry_id, current_user.id, session)
+    return EntryController.get_entry_by_id(entry_id, session)
 
 
 @entries_router.patch("/{entry_id}", response_model=ReadEntry)
@@ -49,14 +49,14 @@ def update_entry(
     session: Annotated[Session, Depends(get_session)],
 ):
     """Update an existing entry."""
-    return EntryController.update_entry(entry_id, entry_data, current_user.id, session)
+    return EntryController.update_entry(entry_id, entry_data, session)
 
 
 @entries_router.delete("/{entry_id}")
 def delete_entry(
     entry_id: int,
-    current_user: Annotated[Users, Depends(get_current_user)],
+    _current_user: Annotated[Users, Depends(get_current_user)],
     session: Annotated[Session, Depends(get_session)],
 ):
     """Delete an entry."""
-    return EntryController.delete_entry(entry_id, current_user.id, session)
+    return EntryController.delete_entry(entry_id, session)
