@@ -2,7 +2,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from .analysis.models import HistoryAnalysis  # noqa: F401
 from .core.database import create_table
 from .core.exceptions import APIException, global_api_exception_handler
 from .entries.models import Entries  # noqa: F401
@@ -10,6 +9,7 @@ from .entries.routes import entries_router
 from .payments.models import Subscription  # noqa: F401
 from .users.models import Users  # noqa: F401
 from .users.routes import auth_router, user_router
+
 
 
 @asynccontextmanager

@@ -8,6 +8,10 @@ class Config(BaseSettings):
 
     RESEND_API_KEY: str
 
+    # Stripe
+    STRIPE_SECRET_KEY: str
+    STRIPE_WEBHOOK_SECRET: str
+
     # JWT Configuration
     ACCESS_TOKEN_SECRET_KEY: str
 
