@@ -11,7 +11,6 @@ from .users.models import Users  # noqa: F401
 from .users.routes import auth_router, user_router
 
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_table()

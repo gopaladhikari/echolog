@@ -8,9 +8,9 @@ class Config(BaseSettings):
 
     RESEND_API_KEY: str
 
-    # Stripe
-    STRIPE_SECRET_KEY: str
-    STRIPE_WEBHOOK_SECRET: str
+    # Paypal
+    PAYPAL_CLIENT_ID: str
+    PAYPAL_CLIENT_SECRET: str
 
     # JWT Configuration
     ACCESS_TOKEN_SECRET_KEY: str
