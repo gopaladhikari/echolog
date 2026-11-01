@@ -74,7 +74,10 @@ class PaymentController:
     @staticmethod
     def cancel_subscription(user: Users):
         paypal_client.subscriptions.cancel_subscription(
-            {"id": user.subscription, "body": {"reason": "Cancelled by user"}}
+            {
+                "id": user.subscription.provider_subscription_id,
+                "body": {"reason": "Cancelled by user"},
+            }
         )
 
         return RedirectResponse(url="/")
