@@ -2,8 +2,10 @@ from datetime import UTC, datetime
 
 import requests
 from fastapi import HTTPException
+from fastapi.responses import RedirectResponse
 from paypalserversdk.configuration import Environment
 from paypalserversdk.http.auth.o_auth_2 import ClientCredentialsAuthCredentials
+from paypalserversdk.models.create_subscription_request import CreateSubscriptionRequest
 from paypalserversdk.paypal_serversdk_client import PaypalServersdkClient
 from sqlmodel import Session, select
 
@@ -37,30 +39,45 @@ class PaymentController:
     """Controller for payment and subscription operations."""
 
     @staticmethod
-    def create_checkout_session(user: Users) -> str:
-        """Create a PayPal subscription and return the approval URL."""
+    def create_checkout_session(user: Users, interval: str) -> str:
+
+        plan_id = (
+            config.PAYPAL_MONTHLY_PLAN_ID
+            if interval == "monthly"
+            else config.PAYPAL_YEARLY_PLAN_ID
+        )
+
         subscription = paypal_client.subscriptions.create_subscription(
             {
-                "body": {
-                    "plan_id": config.PAYPAL_PRO_PLAN_ID,
-                    "custom_id": str(user.id),
-                    "application_context": {
-                        "brand_name": "EchoLog",
-                        "return_url": "https://yourfrontend.com/success",
-                        "cancel_url": "https://yourfrontend.com/cancel",
-                        "user_action": "SUBSCRIBE_NOW",
-                    },
-                },
+                "body": CreateSubscriptionRequest(
+                    {
+                        "plan_id": plan_id,
+                        "custom_id": str(user.id),
+                        "application_context": {
+                            "brand_name": "EchoLog",
+                            "return_url": "url/payment/success",
+                            "cancel_url": "url/payment/cancel",
+                            "user_action": "SUBSCRIBE_NOW",
+                        },
+                    }
+                ),
                 "prefer": "return=representation",
             }
         )
 
-        # Iterate over the response links to find the approval URL
         for link in subscription.body.links:
             if link.rel == "approve":
-                return link.href
+                return RedirectResponse(url=link.href)
 
         raise HTTPException(status_code=500, detail="Approval URL not found")
+
+    @staticmethod
+    def cancel_subscription(user: Users):
+        paypal_client.subscriptions.cancel_subscription(
+            {"id": user.subscription, "body": {"reason": "Cancelled by user"}}
+        )
+
+        return RedirectResponse(url="/")
 
     @staticmethod
     def process_webhook(headers: dict, event: dict, session: Session) -> None:
@@ -100,13 +117,16 @@ class PaymentController:
 
         # 3. Process the Verified Event
         event_type = event.get("event_type")
+
         resource = event.get("resource", {})
 
         user_id_str = resource.get("custom_id")
+
         if not user_id_str:
-            return  # Ignore events not tied to a custom EchoLog user
+            return
 
         user_id = int(user_id_str)
+
         sub_id = resource.get("id")
 
         if event_type == "BILLING.SUBSCRIPTION.ACTIVATED":
@@ -128,11 +148,14 @@ class PaymentController:
         elif event_type in [
             "BILLING.SUBSCRIPTION.CANCELLED",
             "BILLING.SUBSCRIPTION.EXPIRED",
+            "BILLING.SUBSCRIPTION.SUSPENDED",
         ]:
             statement = select(Subscription).where(
                 Subscription.provider_subscription_id == sub_id
             )
+
             sub = session.exec(statement).first()
+
             if sub:
                 sub.status = "canceled"
                 session.add(sub)

@@ -10,7 +10,12 @@ class Config(BaseSettings):
 
     # Paypal
     PAYPAL_CLIENT_ID: str
+
     PAYPAL_CLIENT_SECRET: str
+
+    PAYPAL_MONTHLY_PLAN_ID: str
+
+    PAYPAL_YEARLY_PLAN_ID: str
 
     # JWT Configuration
     ACCESS_TOKEN_SECRET_KEY: str

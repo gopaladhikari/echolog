@@ -26,6 +26,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 # Exception handlers
 app.add_exception_handler(APIException, global_api_exception_handler)
 
